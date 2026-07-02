@@ -23,8 +23,8 @@ class ContactsTest extends TestCase
 
     public function test_crear_contactos(): void
     {
-        $this->postJson('/api/contacts', [
-            'name' => 'Breiner',
+        $this->postJson('api/contacts', [
+            'name' => fake()->firstName(),
             'email' => 'hernandez@example.com',
         ]);
 
