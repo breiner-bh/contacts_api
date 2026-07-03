@@ -12,11 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::Create( 'concacts' ,function(Blueprint $table){
+        Schema::Create( 'contacts' ,function(Blueprint $table){
             $table->id();
             $table->string('name')->nullable(true);
             $table->unsignedBigInteger('user_id')->nullable(true);
             $table->string('phone_number')->nullable(true);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
