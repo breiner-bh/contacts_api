@@ -1,4 +1,4 @@
-# Proyecto de Gestión de Empleados, Cargos y Funciones de Cargo
+# Proyecto de Contacts_api
 
 ## Autor
 
@@ -34,8 +34,8 @@ proteger las rutas privadas.
 ## Instalación
 
 ``` bash
-git clone https://github.com/breiner-bh/projecto-de-luisca-rds.git
-cd projecto-de-luisca-rds
+git clone https://github.com/breiner-bh/contacts_api.git
+cd contacts_api
 composer install
 npm install
 ```
@@ -159,7 +159,6 @@ php artisan test
 Pruebas específicas:
 
 ``` bash
-php artisan test --filter=CargoTest
-php artisan test --filter=FuncionesCargoTest
-php artisan test --filter=EmpleadoTest
+php artisan test --filter=ContactsTest
+
 ```
