@@ -2,69 +2,79 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Container\Attributes\Auth;
+
 
 use Illuminate\Http\Request;
-use Symfony\Contracts\Service\Attribute\Required;
+//use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use App\Models\User;
 
 class AuthController extends Controller
 {
+
     public function login(Request $request)
     {
-        $credenciales = $request->validate([
-            'email' =>['required','email'],
-            'password' =>['required']
+        $datos = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
-         if (Auth::attempt($credenciales)) {
-            /**@var \App\Models\User $user */
-            $user = Auth::user();
-            $token = $user->createToken('token')->plainTextToken;
+
+        // Buscar el usuario por el correo
+        $user = User::where('email', $datos['email'])->first();
+
+        // Verificar que exista y que la contraseña sea correcta
+        if (!$user || !Hash::check($datos['password'], $user->password)) {
             return response()->json([
-                'success' => true,
-                'token' => $token,
-                'message'=>'usuario  a creado sesion con exito',
-                'data' => $user
-                ], 201);
-        }else {
-            response()->json([
-                'success' => true,
-                'message' => 'Credenciales invalidas',
-            ],401);
+                'success' => false,
+                'message' => 'Credenciales inválidas',
+            ], 401);
         }
+
+        // Crear el token
+        $token = $user->createToken('token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Usuario ha iniciado sesión con éxito',
+            'token' => $token,
+            'data' => $user,
+        ], 200);
     }
+
     public function register(Request $request)
     {
-        $validator = validator::make($request->all(),[
-            'name' => ['required','string','max:255'],
-            'email' => ['required','email','unique:user,email'],
-            'password' => ['required','string','min:8']
-            ],[
-                'email.unique' => 'el correo del usuario que deseas iniciar ya se encuentra registrado en la base de datos'
+
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8']
+        ], [
+            'email.unique' => 'el correo del usuario que deseas iniciar ya se encuentra registrado en la base de datos'
         ]);
-        if($validator->fails())
-            {
-                return response()->json([
-                    'success' => true,
-                    'message' => validator()->errors()->first()
-                ], 422);
-            }
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
         $datosvalidados = $validator->validated();
         $user = \App\Models\User::create([
-            'name' => $validator['name'],
-            'email' => $validator['email'],
-            'password' => bcrypt($validator('password'))
-
+            'name' => $datosvalidados['name'],
+            'email' => $datosvalidados['email'],
+            'password' => bcrypt($datosvalidados['password'])
         ]);
         $token = $user->createToken('token')->plainTextToken;
         return response()->json([
             'success' => true,
-            'message' => 'usuario registrado exitosamente',
+            'message' => 'usuario registrado con exito',
+            'token' => $token,
             'data' => $user
-        ],201); 
+        ], 201);
     }
-    public function logout (Required $request)
+    public function logout(Request $request)
     {
-        $request->user()->currentAccessToken('token')->delete();
+        $request->user()->currentAccessToken()->delete();
         return response()->json([
             'success' => true,
             'message' => 'Cierre de sesion con exito'

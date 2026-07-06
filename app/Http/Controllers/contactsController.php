@@ -1,19 +1,22 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\concacts;
+
 use App\Models\Contacts;
 use Illuminate\Http\Request;
+
 
 class ContactsController extends Controller
 {
     public function store( Request $request){
         $datos = $request->validate([
             'name' => ['required','string','max:255'],
-            'user_id' => ['required','interger','exists:user'],
-            'phone_number' =>['required','numeric']
+            'user_id' => ['required','integer','exists:users,id'],
+            'phone_number' =>['required','numeric','unique:contacts,phone_number']
+            ],
+            [ 'phone_number.unique' => 'el numero de teledfono que desea guardar ya se encuentra registrado'
         ]);
-        $contactos = concacts::create([
+        $contactos = Contacts::create([
             'name'=>$datos['name'],
             'user_id'=>$datos['user_id'],
             'phone_number'=>$datos['phone_number']
@@ -22,10 +25,10 @@ class ContactsController extends Controller
             'success'=>true,
             'message' =>'contacto creado con exito',
             'data' => $contactos
-        ], 200);
+        ], 201);
     }
     public function index(){
-        $contactos = contacts::paginate(5);
+        $contactos = Contacts::paginate(5);
         if(!$contactos){
             return response()->json([
                 'success' => false,
@@ -55,22 +58,22 @@ class ContactsController extends Controller
                 ], 200);
             }
     }
-    public function Update(Request $request, Contacts $contactos)
+    public function update(Request $request, Contacts $contact)
     {
         $datos = $request->validate([
             'name'=>['required','string','max:255'],
-            'user_id'=>['required','integer','exists:Users,id'],
+            'user_id'=>['required','integer','exists:users,id'],
             'phone_number'=>['required','numeric']
         ]);
-        $contactos->update([
+        $contact->update([
             'name'=>$datos['name'],
             'user_id'=>$datos['user_id'],
             'phone_number'=>$datos['phone_number']
         ]);
         return response()->json([
             'success' => true,
-            'messsage' => 'Contacto actualizado con exito.',
-            'data' => $contactos
+            'message' => 'contacto actualizado con exito',
+            'data' => $contact->refresh(),
         ],200);
     }
     public function destroy( int $id)
@@ -91,4 +94,5 @@ class ContactsController extends Controller
                 ], 200);
             }
     }
+
 }
